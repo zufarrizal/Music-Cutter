@@ -3,8 +3,8 @@ const fileInfo = document.getElementById("fileInfo");
 const audioPreview = document.getElementById("audioPreview");
 const startSlider = document.getElementById("startSlider");
 const endSlider = document.getElementById("endSlider");
-const startValue = document.getElementById("startValue");
-const endValue = document.getElementById("endValue");
+const startInput = document.getElementById("startInput");
+const endInput = document.getElementById("endInput");
 const selectionInfo = document.getElementById("selectionInfo");
 const playSelectionBtn = document.getElementById("playSelectionBtn");
 const cutBtn = document.getElementById("cutBtn");
@@ -15,15 +15,60 @@ let audioBuffer = null;
 let currentFileName = "audio";
 let stopTimer = null;
 
-const fmt = (seconds) => `${seconds.toFixed(2)}s`;
+function formatDuration(seconds) {
+  const safe = Math.max(0, Number(seconds) || 0);
+  const totalCentiseconds = Math.round(safe * 100);
+  const hours = Math.floor(totalCentiseconds / 360000);
+  const minutes = Math.floor((totalCentiseconds % 360000) / 6000);
+  const secs = Math.floor((totalCentiseconds % 6000) / 100);
+  const centis = totalCentiseconds % 100;
+
+  if (hours > 0) {
+    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}:${String(centis).padStart(2, "0")}`;
+  }
+
+  const totalMinutes = Math.floor(totalCentiseconds / 6000);
+  return `${String(totalMinutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}:${String(centis).padStart(2, "0")}`;
+}
+
+function parseDurationInput(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return NaN;
+
+  if (/^\d+(\.\d+)?$/.test(raw)) {
+    return Number(raw);
+  }
+
+  const parts = raw.split(":");
+  if (parts.length < 2 || parts.length > 4) return NaN;
+  if (parts.some((part) => !/^\d+$/.test(part))) return NaN;
+
+  const nums = parts.map((part) => Number(part));
+
+  if (parts.length === 2) {
+    const [m, s] = nums;
+    if (s >= 60) return NaN;
+    return m * 60 + s;
+  }
+
+  if (parts.length === 3) {
+    const [m, s, cs] = nums;
+    if (s >= 60 || cs >= 100) return NaN;
+    return m * 60 + s + cs / 100;
+  }
+
+  const [h, m, s, cs] = nums;
+  if (m >= 60 || s >= 60 || cs >= 100) return NaN;
+  return h * 3600 + m * 60 + s + cs / 100;
+}
 
 function updateSelectionUI() {
   const a = Number(startSlider.value);
   const b = Number(endSlider.value);
   const max = Number(startSlider.max) || 0;
-  startValue.value = fmt(a);
-  endValue.value = fmt(b);
-  selectionInfo.textContent = `Durasi potong: ${(b - a).toFixed(2)}s`;
+  startInput.value = formatDuration(a);
+  endInput.value = formatDuration(b);
+  selectionInfo.textContent = `Durasi potong: ${formatDuration(b - a)}`;
 
   if (max > 0) {
     rangeSelection.style.left = `${(a / max) * 100}%`;
@@ -52,6 +97,8 @@ function enforceBounds(changed) {
 function setControlsEnabled(enabled) {
   startSlider.disabled = !enabled;
   endSlider.disabled = !enabled;
+  startInput.disabled = !enabled;
+  endInput.disabled = !enabled;
   playSelectionBtn.disabled = !enabled;
   cutBtn.disabled = !enabled;
 }
@@ -84,7 +131,7 @@ fileInput.addEventListener("change", async (event) => {
     startSlider.value = "0";
     endSlider.value = String(duration);
 
-    fileInfo.textContent = `${file.name} (${duration.toFixed(2)} detik)`;
+    fileInfo.textContent = `${file.name} (${formatDuration(duration)})`;
     setControlsEnabled(true);
     updateSelectionUI();
   } catch (error) {
@@ -96,6 +143,43 @@ fileInput.addEventListener("change", async (event) => {
 
 startSlider.addEventListener("input", () => enforceBounds("start"));
 endSlider.addEventListener("input", () => enforceBounds("end"));
+
+function applyManualInput(target) {
+  const max = Number(startSlider.max) || 0;
+  const source = target === "start" ? startInput : endInput;
+  const parsed = parseDurationInput(source.value);
+  if (Number.isNaN(parsed)) {
+    updateSelectionUI();
+    return;
+  }
+
+  const clamped = Math.min(Math.max(parsed, 0), max);
+  if (target === "start") {
+    startSlider.value = String(clamped);
+    enforceBounds("start");
+    return;
+  }
+
+  endSlider.value = String(clamped);
+  enforceBounds("end");
+}
+
+startInput.addEventListener("change", () => applyManualInput("start"));
+endInput.addEventListener("change", () => applyManualInput("end"));
+
+startInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    applyManualInput("start");
+    startInput.blur();
+  }
+});
+
+endInput.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    applyManualInput("end");
+    endInput.blur();
+  }
+});
 
 playSelectionBtn.addEventListener("click", () => {
   if (!audioBuffer) return;

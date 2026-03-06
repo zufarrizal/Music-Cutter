@@ -6,6 +6,16 @@ Aplikasi web untuk memotong audio dengan marker:
 
 Hasil potongan diunduh sebagai file `.wav`.
 
+## Fitur Utama
+
+- Dual slider A-B dalam satu track (bukan terpisah).
+- Input manual waktu untuk `A` dan `B`.
+- Format waktu konsisten dengan pemisah `:`:
+  - `< 1 jam` -> `mm:ss:cc`
+  - `>= 1 jam` -> `hh:mm:ss:cc`
+- Putar pratinjau segmen A-B sebelum unduh.
+- Ekspor hasil potong ke `.wav`.
+
 ## Menjalankan Aplikasi
 
 ### Opsi cepat (Windows)
@@ -23,13 +33,14 @@ Script akan:
 
 ```bash
 npm install
-npm run dev
+npm start
 ```
 
 Lalu buka URL lokal dari Vite (biasanya `http://localhost:5173`).
 
 ## Script NPM
 
+- `npm start` - jalankan mode development (alias `vite`)
 - `npm run dev` - jalankan mode development
 - `npm run build` - build production
 - `npm run preview` - preview hasil build
