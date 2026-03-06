@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Cutter A-B</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="glow glow-left"></div>
+  <div class="glow glow-right"></div>
+
+  <main class="container">
+    <section class="hero">
+      <p class="badge">AB Cutter</p>
+      <h1>Potong Musik Dengan Marker A-B</h1>
+      <p class="subtitle">Unggah audio, geser titik A sebagai awal dan B sebagai akhir, lalu unduh hasil potongan secara instan.</p>
+    </section>
+
+    <section class="card upload-card">
+      <div class="card-head">
+        <h2>Upload Audio</h2>
+        <p>Format otomatis diproses dan diekspor sebagai WAV.</p>
+      </div>
+      <label for="fileInput" class="file-label">Pilih File</label>
+      <input id="fileInput" type="file" accept="audio/*">
+      <p id="fileInfo" class="muted">Belum ada file dipilih.</p>
+      <audio id="audioPreview" controls></audio>
+    </section>
+
+    <section class="card control-card">
+      <div class="card-head">
+        <h2>Area Potong</h2>
+        <p id="selectionInfo" class="muted">Durasi potong: 0.00s</p>
+      </div>
+
+      <div id="rangeTrack" class="range-track">
+        <div id="rangeSelection" class="range-selection"></div>
+      </div>
+
+      <div class="slider-wrap">
+        <div class="row">
+          <label for="startSlider">A (Awal)</label>
+          <output id="startValue">0.00s</output>
+        </div>
+        <input id="startSlider" type="range" min="0" max="0" step="0.01" value="0" disabled>
+      </div>
+
+      <div class="slider-wrap">
+        <div class="row">
+          <label for="endSlider">B (Akhir)</label>
+          <output id="endValue">0.00s</output>
+        </div>
+        <input id="endSlider" type="range" min="0" max="0" step="0.01" value="0" disabled>
+      </div>
+
+      <div class="actions">
+        <button id="playSelectionBtn" disabled>Putar Segmen A-B</button>
+        <button id="cutBtn" class="btn-primary" disabled>Potong dan Unduh</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
